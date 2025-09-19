@@ -1,6 +1,6 @@
 "use client";
 
-import { PlayerStats as PlayerStatsType } from "@/store/game";
+import { PlayerStats as PlayerStatsType } from "@/types";
 
 interface PlayerStatsProps {
   stats: PlayerStatsType;
