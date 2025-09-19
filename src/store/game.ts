@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { PlayerStats, Semester, GameState } from '@/types';
 import { INITIAL_STATS, GAME_CONFIG } from '@/constants';
+import { isEventCard } from '@/utils';
 
 const SEMESTER_CONFIG = {
     MONTHS_PER_SEMESTER: 6,
@@ -23,7 +24,10 @@ export const useGameStore = create<GameState>()(
                 // Get current semester and month data
                 const currentSemesterData = semesters.find(sem => sem.number === state.currentSemester);
                 const currentMonthData = currentSemesterData?.months[state.currentMonth - 1];
-                const card = currentMonthData?.cards.find(c => c.id === cardId);
+
+                // Check both regular cards and events
+                const card = currentMonthData?.cards.find(c => c.id === cardId) ||
+                    currentMonthData?.events?.find(e => e.id === cardId);
 
                 if (!card || state.completedCards.includes(cardId)) return;
 
@@ -50,23 +54,42 @@ export const useGameStore = create<GameState>()(
                     return acc;
                 }, {} as Partial<PlayerStats>);
 
-                set((state) => ({
+                // Handle branching logic
+                const newState: Partial<GameState> = {
                     stats: newStats,
                     completedCards: [...state.completedCards, cardId],
                     storyLog: [
                         ...state.storyLog,
                         {
                             id: `log-${Date.now()}`,
-                            message: `Semester ${state.currentSemester}, Month ${state.currentMonth}: "${card.name}" - ${Object.entries(statChanges)
+                            message: `Semester ${state.currentSemester}, Month ${state.currentMonth}: ${isEventCard(card) ? '🎭 EVENT' : '📚 CARD'} "${card.name}" - ${Object.entries(statChanges)
                                 .map(([stat, value]) => `${stat.toUpperCase()} ${value! > 0 ? '+' : ''}${value}`)
                                 .join(', ')}`,
                             timestamp: Date.now(),
                         },
                     ].slice(-GAME_CONFIG.MAX_STORY_LOG_ITEMS),
-                }));
+                };
 
-                // TODO: Handle chapter progression based on semester/month
-                // For now, cards complete without chapter changes
+                // Handle branching based on card properties
+                if (card.nextMonth) {
+                    newState.currentMonth = card.nextMonth;
+                    newState.completedCards = [];
+                }
+
+                if (card.nextSemester) {
+                    newState.currentSemester = card.nextSemester;
+                    newState.currentMonth = 1;
+                    newState.completedCards = [];
+                }
+
+                // TODO: Handle nextChapterId for more complex branching
+                // This could trigger special events, unlock new card sets, etc.
+                if (card.nextChapterId) {
+                    // Future: Implement chapter-based branching
+                    // Could unlock new card sets, trigger special events, etc.
+                }
+
+                set(newState);
             },
 
             advanceMonth: () => {

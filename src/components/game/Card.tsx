@@ -1,14 +1,24 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Card as CardType } from "@/types";
+import { Card as CardType, PlayerStats } from "@/types";
+import { checkCardRequirement, getCardImportanceStyle } from "@/utils";
+import { useState } from "react";
 
 interface CardProps {
   card: CardType;
+  stats: PlayerStats;
   onClick?: () => void;
 }
 
-export default function Card({ card, onClick }: CardProps) {
+export default function Card({ card, stats, onClick }: CardProps) {
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  const requirementCheck = checkCardRequirement(card, stats);
+  const canPlay = requirementCheck.canPlay;
+  const lockReason = requirementCheck.reason;
+
+  const importanceStyle = getCardImportanceStyle(card.importance);
   const getCardTheme = (type: string) => {
     switch (type) {
       case "study":
@@ -78,20 +88,31 @@ export default function Card({ card, onClick }: CardProps) {
         relative w-56 h-72 rounded-2xl p-4 cursor-pointer
         backdrop-blur-sm border ${theme.border}
         ${theme.bg} ${theme.glow}
+        ${importanceStyle.glow} ${importanceStyle.border} ${
+        importanceStyle.pulse
+      }
         shadow-lg hover:shadow-xl
         transition-all duration-300 ease-out
         group overflow-hidden
         flex flex-col
+        ${!canPlay ? "opacity-50 grayscale" : ""}
+        ${!canPlay ? "cursor-not-allowed" : ""}
       `}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{
-        scale: 1.05,
-        y: -6,
-        transition: { duration: 0.2, ease: "easeOut" },
-      }}
-      whileTap={{ scale: 0.97 }}
-      onClick={onClick}
+      whileHover={
+        canPlay
+          ? {
+              scale: 1.05,
+              y: -6,
+              transition: { duration: 0.2, ease: "easeOut" },
+            }
+          : {}
+      }
+      whileTap={canPlay ? { scale: 0.97 } : {}}
+      onClick={canPlay ? onClick : undefined}
+      onMouseEnter={() => !canPlay && setShowTooltip(true)}
+      onMouseLeave={() => setShowTooltip(false)}
       layout
     >
       {/* Accent hover overlay */}
@@ -102,12 +123,26 @@ export default function Card({ card, onClick }: CardProps) {
       {/* Card header */}
       <div className="relative z-10 flex items-center justify-between mb-3">
         <div className="text-2xl">{theme.icon}</div>
-        <div
-          className={`px-3 py-0.5 rounded-full bg-gradient-to-r ${theme.accent} text-white text-xs font-semibold shadow-md`}
-        >
-          {card.type.toUpperCase()}
+        <div className="flex items-center gap-2">
+          {!canPlay && (
+            <div className="text-red-500 text-lg" title="Card locked">
+              🔒
+            </div>
+          )}
+          <div
+            className={`px-3 py-0.5 rounded-full bg-gradient-to-r ${theme.accent} text-white text-xs font-semibold shadow-md`}
+          >
+            {card.type.toUpperCase()}
+          </div>
         </div>
       </div>
+
+      {/* Lock tooltip */}
+      {showTooltip && !canPlay && lockReason && (
+        <div className="absolute top-0 left-0 right-0 bg-red-600 text-white text-xs p-2 rounded-t-2xl z-20">
+          {lockReason}
+        </div>
+      )}
 
       {/* Card content */}
       <div className="relative z-10 flex-1 flex flex-col">

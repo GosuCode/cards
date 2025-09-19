@@ -9,6 +9,10 @@ export interface CardEffect {
     (stats: PlayerStats): PlayerStats;
 }
 
+export interface CardRequirement {
+    (stats: PlayerStats): boolean;
+}
+
 export interface Card {
     id: string;
     name: string;
@@ -18,8 +22,28 @@ export interface Card {
     nextChapterId?: string;
     nextMonth?: number;
     nextSemester?: number;
-    requires?: Partial<PlayerStats>;
+    requires?: Partial<PlayerStats> | CardRequirement;
     hiddenMessage?: string;
+    importance?: 'normal' | 'important' | 'critical';
+    lockReason?: string;
+}
+
+export interface EventCard {
+    id: string;
+    name: string;
+    description: string;
+    category: 'life' | 'chaos' | 'money' | 'academic';
+    effect: CardEffect;
+    nextChapterId?: string;
+    nextMonth?: number;
+    nextSemester?: number;
+    requires?: Partial<PlayerStats> | CardRequirement;
+    hiddenMessage?: string;
+    importance?: 'normal' | 'important' | 'critical';
+    lockReason?: string;
+    isEvent: true;
+    eventType: 'festival' | 'crisis' | 'opportunity' | 'social' | 'academic' | 'financial';
+    rarity?: 'common' | 'uncommon' | 'rare' | 'legendary';
 }
 
 export interface Chapter {
@@ -34,6 +58,7 @@ export interface Month {
     name: string;
     description: string;
     cards: Card[];
+    events?: EventCard[]; // Optional events for this month
 }
 
 export interface Semester {

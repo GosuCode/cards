@@ -2,14 +2,30 @@
 
 import { motion } from "framer-motion";
 import Card from "./Card";
-import { Card as CardType } from "@/types";
+import EventCard from "./EventCard";
+import {
+  Card as CardType,
+  EventCard as EventCardType,
+  PlayerStats,
+} from "@/types";
+import { filterAvailableCards, isEventCard } from "@/utils";
 
 interface CardHandProps {
-  cards: CardType[];
-  onCardClick?: (card: CardType) => void;
+  cards: (CardType | EventCardType)[];
+  stats: PlayerStats;
+  onCardClick?: (card: CardType | EventCardType) => void;
+  showLockedCards?: boolean;
 }
 
-export default function CardHand({ cards, onCardClick }: CardHandProps) {
+export default function CardHand({
+  cards,
+  stats,
+  onCardClick,
+  showLockedCards = true,
+}: CardHandProps) {
+  const displayCards = showLockedCards
+    ? cards
+    : filterAvailableCards(cards, stats);
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -39,7 +55,7 @@ export default function CardHand({ cards, onCardClick }: CardHandProps) {
       initial="hidden"
       animate="visible"
     >
-      {cards.length === 0 ? (
+      {displayCards.length === 0 ? (
         <motion.div
           className="text-center py-16 w-full"
           initial={{ opacity: 0, scale: 0.8 }}
@@ -55,9 +71,21 @@ export default function CardHand({ cards, onCardClick }: CardHandProps) {
           </p>
         </motion.div>
       ) : (
-        cards.map((card) => (
+        displayCards.map((card) => (
           <motion.div key={card.id} variants={cardVariants} layout>
-            <Card card={card} onClick={() => onCardClick?.(card)} />
+            {isEventCard(card) ? (
+              <EventCard
+                eventCard={card}
+                stats={stats}
+                onClick={() => onCardClick?.(card)}
+              />
+            ) : (
+              <Card
+                card={card}
+                stats={stats}
+                onClick={() => onCardClick?.(card)}
+              />
+            )}
           </motion.div>
         ))
       )}

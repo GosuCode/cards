@@ -5,7 +5,7 @@ import { useGameStore } from "@/store/game";
 import { semesters, getMonthBySemesterAndMonth } from "@/lib/chapters";
 import { PlayerStats, FloatingStatsManager } from "@/components/ui";
 import { CardHand } from "@/components/game";
-import { Card as CardType } from "@/types";
+import { Card as CardType, EventCard as EventCardType } from "@/types";
 import { useStatChanges } from "@/hooks";
 import { calculateTotalStats, calculateBalanceScore } from "@/utils";
 import { GAME_CONFIG } from "@/constants";
@@ -31,17 +31,20 @@ export default function GameBoard() {
     currentSemester,
     currentMonth
   );
-  const availableCards =
-    currentMonthData?.cards.filter(
+  const availableCards = [
+    ...(currentMonthData?.cards.filter(
       (card) => !completedCards.includes(card.id)
-    ) || [];
+    ) || []),
+    ...(currentMonthData?.events?.filter(
+      (event) => !completedCards.includes(event.id)
+    ) || []),
+  ];
 
-  // Track stat changes when stats update
   useEffect(() => {
     updateStats(stats);
   }, [stats, updateStats]);
 
-  const handleCardClick = (card: CardType) => {
+  const handleCardClick = (card: CardType | EventCardType) => {
     completeCard(card.id, semesters);
   };
 
@@ -163,7 +166,9 @@ export default function GameBoard() {
                 </div>
                 <CardHand
                   cards={availableCards}
+                  stats={stats}
                   onCardClick={handleCardClick}
+                  showLockedCards={true}
                 />
               </motion.div>
             </div>

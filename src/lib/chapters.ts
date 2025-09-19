@@ -1,5 +1,6 @@
 import { Semester, Month, Chapter, Card } from '@/types';
 import { createEffect } from '@/utils';
+import { getEventsForMonth } from './events';
 
 const SEMESTER_CONFIG = {
     TOTAL_SEMESTERS: 8,
@@ -43,23 +44,46 @@ const semester1: Semester = {
                     'Attend College Orientation',
                     'Learn about BCA curriculum, faculty, and campus facilities.',
                     'study',
-                    { gpa: 5, social: 10, stress: -5 }
+                    { gpa: 5, social: 10, stress: -5 },
+                    { importance: 'important' }
                 ),
                 createSemesterCard(
                     's1m1c2',
                     'Join Programming Club',
                     'Meet fellow coding enthusiasts and learn together.',
                     'life',
-                    { social: 8, gpa: 3, stress: -2 }
+                    { social: 8, gpa: 3, stress: -2 },
+                    {
+                        requires: { social: 5 }, // Requires some social skills
+                        lockReason: "You need to be more social to join clubs"
+                    }
                 ),
                 createSemesterCard(
                     's1m1c3',
                     'Buy Textbooks',
                     'Purchase essential programming and computer science books.',
                     'money',
-                    { money: -15, gpa: 5, stress: 2 }
+                    { money: -15, gpa: 5, stress: 2 },
+                    {
+                        requires: { money: 20 }, // Need money to buy books
+                        lockReason: "You need at least 20 money to buy textbooks"
+                    }
                 ),
+                // Add a critical card with function-based requirements and branching
+                {
+                    id: 's1m1c4',
+                    name: 'Critical Decision: Academic Path',
+                    description: 'Choose your specialization - this will affect your entire college journey.',
+                    type: 'study' as const,
+                    effect: createEffect({ gpa: 15, stress: 10 }),
+                    importance: 'critical' as const,
+                    requires: (stats) => stats.gpa >= 30, // Function-based requirement
+                    lockReason: "You need at least 30 GPA to make this critical decision",
+                    nextMonth: 2, // Branches to next month
+                    hiddenMessage: "This choice will unlock new opportunities!"
+                },
             ],
+            events: getEventsForMonth(1),
         },
         {
             id: 'sem1-month2',
@@ -99,6 +123,7 @@ const semester1: Semester = {
                     { social: 10, stress: -8, gpa: -3 }
                 ),
             ],
+            events: getEventsForMonth(1), // Add semester-appropriate events to second month
         },
         {
             id: 'sem1-month3',
@@ -127,6 +152,7 @@ const semester1: Semester = {
                     { money: -50, gpa: 8, stress: -5 }
                 ),
             ],
+            events: getEventsForMonth(1), // Add semester-appropriate events to third month
         },
         {
             id: 'sem1-month4',
@@ -155,6 +181,7 @@ const semester1: Semester = {
                     { gpa: 6, social: 3, stress: 3 }
                 ),
             ],
+            events: getEventsForMonth(1), // Add semester-appropriate events to fourth month
         },
         {
             id: 'sem1-month5',
@@ -187,6 +214,7 @@ const semester1: Semester = {
                     { social: 8, gpa: 3, stress: -3 }
                 ),
             ],
+            events: getEventsForMonth(1), // Add semester-appropriate events to fifth month
         },
         {
             id: 'sem1-month6',
@@ -215,6 +243,7 @@ const semester1: Semester = {
                     { stress: 15, gpa: -3, social: -3 }
                 ),
             ],
+            events: getEventsForMonth(1), // Add semester-appropriate events to sixth month
         },
     ],
     examChapter: {
