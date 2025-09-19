@@ -1,7 +1,6 @@
 import { PlayerStats } from '@/types';
 import { STAT_LIMITS } from '@/constants';
 
-// clamp stats between 0 and 100
 export const clampStats = (stats: PlayerStats): PlayerStats => ({
     gpa: Math.max(STAT_LIMITS.MIN, Math.min(STAT_LIMITS.MAX, stats.gpa)),
     money: Math.max(STAT_LIMITS.MIN, Math.min(STAT_LIMITS.MAX, stats.money)),
@@ -12,8 +11,10 @@ export const clampStats = (stats: PlayerStats): PlayerStats => ({
 export const createEffect = (changes: Partial<PlayerStats>) =>
     (stats: PlayerStats): PlayerStats =>
         clampStats({
-            ...stats,
-            ...changes,
+            gpa: stats.gpa + (changes.gpa || 0),
+            money: stats.money + (changes.money || 0),
+            stress: stats.stress + (changes.stress || 0),
+            social: stats.social + (changes.social || 0),
         });
 
 export const calculateTotalStats = (stats: PlayerStats): number => {

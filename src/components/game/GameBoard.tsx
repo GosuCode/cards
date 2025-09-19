@@ -3,11 +3,13 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useGameStore } from "@/store/game";
 import { semesters, getMonthBySemesterAndMonth } from "@/lib/chapters";
-import { PlayerStats } from "@/components/ui";
+import { PlayerStats, FloatingStatsManager } from "@/components/ui";
 import { CardHand } from "@/components/game";
 import { Card as CardType } from "@/types";
+import { useStatChanges } from "@/hooks";
 import { calculateTotalStats, calculateBalanceScore } from "@/utils";
 import { GAME_CONFIG } from "@/constants";
+import { useEffect } from "react";
 
 export default function GameBoard() {
   const {
@@ -23,6 +25,8 @@ export default function GameBoard() {
     resetGame,
   } = useGameStore();
 
+  const { changes, updateStats, removeStatChange } = useStatChanges();
+
   const currentMonthData = getMonthBySemesterAndMonth(
     currentSemester,
     currentMonth
@@ -31,6 +35,11 @@ export default function GameBoard() {
     currentMonthData?.cards.filter(
       (card) => !completedCards.includes(card.id)
     ) || [];
+
+  // Track stat changes when stats update
+  useEffect(() => {
+    updateStats(stats);
+  }, [stats, updateStats]);
 
   const handleCardClick = (card: CardType) => {
     completeCard(card.id, semesters);
@@ -248,6 +257,9 @@ export default function GameBoard() {
           </motion.div>
         )}
       </div>
+
+      {/* Floating Stats Manager */}
+      <FloatingStatsManager changes={changes} onRemove={removeStatChange} />
     </div>
   );
 }

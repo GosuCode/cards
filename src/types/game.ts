@@ -19,6 +19,7 @@ export interface Card {
     nextMonth?: number;
     nextSemester?: number;
     requires?: Partial<PlayerStats>;
+    hiddenMessage?: string;
 }
 
 export interface Chapter {

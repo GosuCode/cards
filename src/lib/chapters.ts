@@ -79,7 +79,10 @@ const semester1: Semester = {
                     'Form a study group with classmates for better learning.',
                     'study',
                     { gpa: 6, social: 5, stress: -3 },
-                    { requires: { social: 20 } }
+                    {
+                        requires: { social: 20 },
+                        hiddenMessage: "You need to be more social to join a study group. Try making friends first!"
+                    }
                 ),
                 createSemesterCard(
                     's1m2c3',
@@ -170,7 +173,11 @@ const semester1: Semester = {
                     'Freelance Web Development',
                     'Take small web development projects for local businesses.',
                     'money',
-                    { money: 20, stress: 10, gpa: 4 }
+                    { money: 20, stress: 10, gpa: 4 },
+                    {
+                        requires: { gpa: 60 },
+                        hiddenMessage: "You need better programming skills (GPA 60+) to take on freelance projects. Study more!"
+                    }
                 ),
                 createSemesterCard(
                     's1m5c3',
