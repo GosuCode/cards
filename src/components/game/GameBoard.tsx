@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useGameStore } from "@/store/game";
-import { chapters, TOTAL_CHAPTERS } from "@/lib/chapters";
+import { semesters, getMonthBySemesterAndMonth } from "@/lib/chapters";
 import { PlayerStats } from "@/components/ui";
 import { CardHand } from "@/components/game";
 import { Card as CardType } from "@/types";
@@ -12,21 +12,28 @@ import { GAME_CONFIG } from "@/constants";
 export default function GameBoard() {
   const {
     stats,
-    currentChapterIndex,
+    currentSemester,
+    currentMonth,
     completedCards,
     storyLog,
     isGameComplete,
     completeCard,
+    advanceMonth,
+    advanceSemester,
     resetGame,
   } = useGameStore();
 
-  const currentChapter = chapters[currentChapterIndex];
+  const currentMonthData = getMonthBySemesterAndMonth(
+    currentSemester,
+    currentMonth
+  );
   const availableCards =
-    currentChapter?.cards.filter((card) => !completedCards.includes(card.id)) ||
-    [];
+    currentMonthData?.cards.filter(
+      (card) => !completedCards.includes(card.id)
+    ) || [];
 
   const handleCardClick = (card: CardType) => {
-    completeCard(card.id, chapters);
+    completeCard(card.id, semesters);
   };
 
   const handleResetGame = () => {
@@ -57,16 +64,16 @@ export default function GameBoard() {
         <div className="text-center mb-8">
           <div className="inline-flex items-center bg-white/10 backdrop-blur-xl rounded-2xl px-6 py-3 border border-white/20">
             <span className="text-white font-semibold">
-              Chapter {currentChapterIndex + 1} of {TOTAL_CHAPTERS}
+              Semester {currentSemester}, Month {currentMonth}
             </span>
           </div>
         </div>
 
-        {/* Chapter Info */}
+        {/* Month Info */}
         <AnimatePresence mode="wait">
-          {currentChapter && (
+          {currentMonthData && (
             <motion.div
-              key={currentChapter.id}
+              key={currentMonthData.id}
               className="bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/20 shadow-2xl mb-8"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -74,16 +81,32 @@ export default function GameBoard() {
               transition={{ duration: 0.5, ease: "easeOut" }}
             >
               <h2 className="text-4xl font-bold text-white mb-4 text-center">
-                {currentChapter.title}
+                {currentMonthData.name}
               </h2>
               <p className="text-xl text-gray-300 text-center leading-relaxed">
-                {currentChapter.description}
+                {currentMonthData.description}
               </p>
             </motion.div>
           )}
         </AnimatePresence>
 
         <PlayerStats stats={stats} />
+
+        {/* Month/Semester Controls */}
+        <div className="flex justify-center gap-4 mb-8">
+          <button
+            onClick={advanceMonth}
+            className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-green-500/25 transition-all duration-300 hover:scale-105"
+          >
+            Advance Month
+          </button>
+          <button
+            onClick={advanceSemester}
+            className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-purple-500/25 transition-all duration-300 hover:scale-105"
+          >
+            Advance Semester
+          </button>
+        </div>
 
         {/* Game Complete Screen */}
         {isGameComplete ? (

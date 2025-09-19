@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { PlayerStats, Chapter, GameState } from '@/types';
+import { PlayerStats, Semester, GameState } from '@/types';
 import { INITIAL_STATS, GAME_CONFIG } from '@/constants';
 
 const SEMESTER_CONFIG = {
@@ -18,12 +18,12 @@ export const useGameStore = create<GameState>()(
             storyLog: [],
             isGameComplete: false,
 
-            completeCard: (cardId: string, chapters: Chapter[]) => {
+            completeCard: (cardId: string, semesters: Semester[]) => {
                 const state = get();
-                // TODO: Implement chapter selection logic based on semester/month
-                // For now, use first chapter as default
-                const currentChapter = chapters[0];
-                const card = currentChapter?.cards.find(c => c.id === cardId);
+                // Get current semester and month data
+                const currentSemesterData = semesters.find(sem => sem.number === state.currentSemester);
+                const currentMonthData = currentSemesterData?.months[state.currentMonth - 1];
+                const card = currentMonthData?.cards.find(c => c.id === cardId);
 
                 if (!card || state.completedCards.includes(cardId)) return;
 

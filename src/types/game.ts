@@ -57,7 +57,7 @@ export interface GameState {
     completedCards: string[];
     storyLog: StoryLog[];
     isGameComplete: boolean;
-    completeCard: (cardId: string, chapters: Chapter[]) => void;
+    completeCard: (cardId: string, semesters: Semester[]) => void;
     advanceMonth: () => void;
     advanceSemester: () => void;
     resetGame: () => void;
