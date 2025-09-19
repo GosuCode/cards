@@ -1,10 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Card as CardType } from "@/store/game";
+import { CardDefinition } from "@/lib/cards";
 
 interface CardProps {
-  card: CardType;
+  card: CardDefinition;
   onClick?: () => void;
 }
 
@@ -71,7 +71,13 @@ export default function Card({ card, onClick }: CardProps) {
         y: -8,
         transition: { duration: 0.2, ease: "easeOut" },
       }}
-      whileTap={{ scale: 0.98 }}
+      whileTap={{
+        scale: 0.95,
+        transition: { duration: 0.1 },
+      }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
       onClick={onClick}
     >
       {/* Animated background gradient */}
@@ -94,9 +100,33 @@ export default function Card({ card, onClick }: CardProps) {
         <h3 className="font-bold text-lg mb-2 text-gray-800 leading-tight">
           {card.name}
         </h3>
-        <p className="text-sm text-gray-600 leading-relaxed">
+        <p className="text-sm text-gray-600 leading-relaxed mb-3">
           {card.description}
         </p>
+
+        {/* Card effects preview */}
+        <div className="text-xs text-gray-500 space-y-1">
+          {Object.entries(card.effect).map(([key, value]) => {
+            const numValue = value as number;
+            return (
+              <div key={key} className="flex justify-between">
+                <span className="capitalize">{key}:</span>
+                <span
+                  className={`font-semibold ${
+                    numValue > 0
+                      ? "text-green-600"
+                      : numValue < 0
+                      ? "text-red-600"
+                      : "text-gray-500"
+                  }`}
+                >
+                  {numValue > 0 ? "+" : ""}
+                  {numValue}
+                </span>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Play button */}

@@ -1,19 +1,26 @@
 "use client";
 
+import { useEffect } from "react";
 import { useGameStore } from "@/store/game";
 import PlayerStats from "./PlayerStats";
 import CardHand from "./CardHand";
-import { Card as CardType } from "@/store/game";
+import { CardDefinition } from "@/lib/cards";
 
 export default function GameBoard() {
-  const { stats, hand } = useGameStore();
+  const { stats, hand, gameLog, drawCards, playCard, initializeGame } =
+    useGameStore();
 
-  const handleCardClick = (card: CardType) => {
-    console.log("Card clicked:", card.name);
+  useEffect(() => {
+    initializeGame();
+    drawCards(5);
+  }, [initializeGame, drawCards]);
+
+  const handleCardClick = (card: CardDefinition) => {
+    playCard(card.id);
   };
 
   const handleDrawCards = () => {
-    console.log("Draw cards clicked");
+    drawCards(5);
   };
 
   return (
@@ -78,10 +85,27 @@ export default function GameBoard() {
                 Game Log
               </h3>
               <div className="space-y-3 max-h-64 overflow-y-auto">
-                <div className="text-gray-400 text-center py-8">
-                  <div className="text-4xl mb-2">🎮</div>
-                  <p>Game events will appear here...</p>
-                </div>
+                {gameLog.length === 0 ? (
+                  <div className="text-gray-400 text-center py-8">
+                    <div className="text-4xl mb-2">🎮</div>
+                    <p>Game events will appear here...</p>
+                  </div>
+                ) : (
+                  gameLog
+                    .slice(-10)
+                    .reverse()
+                    .map((log) => (
+                      <div
+                        key={log.id}
+                        className="bg-white/5 rounded-lg p-3 border border-white/10"
+                      >
+                        <p className="text-sm text-gray-300">{log.message}</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {log.timestamp.toLocaleTimeString()}
+                        </p>
+                      </div>
+                    ))
+                )}
               </div>
             </div>
 

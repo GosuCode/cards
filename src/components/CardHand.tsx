@@ -1,11 +1,12 @@
 "use client";
 
+import { motion } from "framer-motion";
 import Card from "./Card";
-import { Card as CardType } from "@/store/game";
+import { CardDefinition } from "@/lib/cards";
 
 interface CardHandProps {
-  cards: CardType[];
-  onCardClick?: (card: CardType) => void;
+  cards: CardDefinition[];
+  onCardClick?: (card: CardDefinition) => void;
 }
 
 export default function CardHand({ cards, onCardClick }: CardHandProps) {
@@ -23,15 +24,17 @@ export default function CardHand({ cards, onCardClick }: CardHandProps) {
         </div>
       ) : (
         cards.map((card, index) => (
-          <div
+          <motion.div
             key={card.id}
-            className="transform transition-all duration-300 hover:scale-105"
-            style={{
-              animationDelay: `${index * 100}ms`,
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              duration: 0.3,
+              delay: index * 0.1,
             }}
           >
             <Card card={card} onClick={() => onCardClick?.(card)} />
-          </div>
+          </motion.div>
         ))
       )}
     </div>
