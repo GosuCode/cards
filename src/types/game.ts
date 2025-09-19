@@ -15,6 +15,10 @@ export interface Card {
     description: string;
     type: 'study' | 'life' | 'money' | 'chaos';
     effect: CardEffect;
+    nextChapterId?: string;
+    nextMonth?: number;
+    nextSemester?: number;
+    requires?: Partial<PlayerStats>;
 }
 
 export interface Chapter {
@@ -22,6 +26,22 @@ export interface Chapter {
     title: string;
     description: string;
     cards: Card[];
+}
+
+export interface Month {
+    id: string;
+    name: string;
+    description: string;
+    cards: Card[];
+}
+
+export interface Semester {
+    id: string;
+    number: number;
+    title: string;
+    description: string;
+    months: Month[];
+    examChapter?: Chapter;
 }
 
 export interface StoryLog {
@@ -32,10 +52,13 @@ export interface StoryLog {
 
 export interface GameState {
     stats: PlayerStats;
-    currentChapterIndex: number;
+    currentSemester: number;
+    currentMonth: number;
     completedCards: string[];
     storyLog: StoryLog[];
     isGameComplete: boolean;
     completeCard: (cardId: string, chapters: Chapter[]) => void;
+    advanceMonth: () => void;
+    advanceSemester: () => void;
     resetGame: () => void;
 }

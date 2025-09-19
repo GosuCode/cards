@@ -3,21 +3,40 @@ import { persist } from 'zustand/middleware';
 import { PlayerStats, Chapter, GameState } from '@/types';
 import { INITIAL_STATS, GAME_CONFIG } from '@/constants';
 
+const SEMESTER_CONFIG = {
+    MONTHS_PER_SEMESTER: 6,
+    TOTAL_SEMESTERS: 6,
+} as const;
+
 export const useGameStore = create<GameState>()(
     persist(
         (set, get) => ({
             stats: INITIAL_STATS,
-            currentChapterIndex: 0,
+            currentSemester: 1,
+            currentMonth: 1,
             completedCards: [],
             storyLog: [],
             isGameComplete: false,
 
             completeCard: (cardId: string, chapters: Chapter[]) => {
                 const state = get();
-                const currentChapter = chapters[state.currentChapterIndex];
+                // TODO: Implement chapter selection logic based on semester/month
+                // For now, use first chapter as default
+                const currentChapter = chapters[0];
                 const card = currentChapter?.cards.find(c => c.id === cardId);
 
                 if (!card || state.completedCards.includes(cardId)) return;
+
+                // Check stat requirements
+                if (card.requires) {
+                    const meetsRequirements = Object.entries(card.requires).every(
+                        ([stat, requiredValue]) => {
+                            const currentValue = state.stats[stat as keyof PlayerStats];
+                            return currentValue >= requiredValue!;
+                        }
+                    );
+                    if (!meetsRequirements) return;
+                }
 
                 const newStats = card.effect(state.stats);
                 const statChanges = Object.keys(newStats).reduce((acc, key) => {
@@ -38,7 +57,7 @@ export const useGameStore = create<GameState>()(
                         ...state.storyLog,
                         {
                             id: `log-${Date.now()}`,
-                            message: `You chose "${card.name}": ${Object.entries(statChanges)
+                            message: `Semester ${state.currentSemester}, Month ${state.currentMonth}: "${card.name}" - ${Object.entries(statChanges)
                                 .map(([stat, value]) => `${stat.toUpperCase()} ${value! > 0 ? '+' : ''}${value}`)
                                 .join(', ')}`,
                             timestamp: Date.now(),
@@ -46,26 +65,66 @@ export const useGameStore = create<GameState>()(
                     ].slice(-GAME_CONFIG.MAX_STORY_LOG_ITEMS),
                 }));
 
-                const allCardsCompleted = currentChapter.cards.every(c =>
-                    [...state.completedCards, cardId].includes(c.id)
-                );
+                // TODO: Handle chapter progression based on semester/month
+                // For now, cards complete without chapter changes
+            },
 
-                if (allCardsCompleted) {
-                    set((state) => ({
-                        currentChapterIndex: state.currentChapterIndex + 1,
-                        completedCards: [],
-                    }));
+            advanceMonth: () => {
+                set((state) => {
+                    const newMonth = state.currentMonth + 1;
 
-                    if (state.currentChapterIndex + 1 >= chapters.length) {
-                        set({ isGameComplete: true });
+                    // Check if we need to advance to next semester
+                    if (newMonth > SEMESTER_CONFIG.MONTHS_PER_SEMESTER) {
+                        return {
+                            currentMonth: 1,
+                            currentSemester: state.currentSemester + 1,
+                            completedCards: [],
+                            // TODO: Add semester transition logic here
+                            // - Check if BCA degree is complete
+                            // - Apply semester-specific effects
+                            // - Trigger semester events
+                        };
                     }
+
+                    return {
+                        currentMonth: newMonth,
+                        completedCards: [],
+                        // TODO: Add month transition logic here
+                        // - Apply monthly recurring effects
+                        // - Check for month-specific events
+                    };
+                });
+
+                // Check for game completion
+                const state = get();
+                if (state.currentSemester > SEMESTER_CONFIG.TOTAL_SEMESTERS) {
+                    set({ isGameComplete: true });
+                }
+            },
+
+            advanceSemester: () => {
+                set((state) => ({
+                    currentSemester: state.currentSemester + 1,
+                    currentMonth: 1,
+                    completedCards: [],
+                    // TODO: Add semester advancement logic here
+                    // - Apply semester-specific stat changes
+                    // - Trigger semester events
+                    // - Update available chapters/cards
+                }));
+
+                // Check for game completion
+                const state = get();
+                if (state.currentSemester > SEMESTER_CONFIG.TOTAL_SEMESTERS) {
+                    set({ isGameComplete: true });
                 }
             },
 
             resetGame: () => {
                 set({
                     stats: INITIAL_STATS,
-                    currentChapterIndex: 0,
+                    currentSemester: 1,
+                    currentMonth: 1,
                     completedCards: [],
                     storyLog: [],
                     isGameComplete: false,
