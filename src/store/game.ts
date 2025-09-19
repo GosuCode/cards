@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { PlayerStats, Semester, GameState } from '@/types';
 import { INITIAL_STATS, GAME_CONFIG } from '@/constants';
-import { isEventCard } from '@/utils';
+import { isEventCard, calculateExamResult } from '@/utils';
 
 const SEMESTER_CONFIG = {
     MONTHS_PER_SEMESTER: 6,
@@ -18,6 +18,9 @@ export const useGameStore = create<GameState>()(
             completedCards: [],
             storyLog: [],
             isGameComplete: false,
+            examResults: [],
+            showExamModal: false,
+            pendingExamResult: null,
 
             completeCard: (cardId: string, semesters: Semester[]) => {
                 const state = get();
@@ -102,19 +105,12 @@ export const useGameStore = create<GameState>()(
                             currentMonth: 1,
                             currentSemester: state.currentSemester + 1,
                             completedCards: [],
-                            // TODO: Add semester transition logic here
-                            // - Check if BCA degree is complete
-                            // - Apply semester-specific effects
-                            // - Trigger semester events
                         };
                     }
 
                     return {
                         currentMonth: newMonth,
                         completedCards: [],
-                        // TODO: Add month transition logic here
-                        // - Apply monthly recurring effects
-                        // - Check for month-specific events
                     };
                 });
 
@@ -151,7 +147,72 @@ export const useGameStore = create<GameState>()(
                     completedCards: [],
                     storyLog: [],
                     isGameComplete: false,
+                    examResults: [],
+                    showExamModal: false,
+                    pendingExamResult: null,
                 });
+            },
+
+            triggerExam: () => {
+                const state = get();
+                const semesterStats = [state.stats]; // In a real implementation, you'd track stats throughout the semester
+                const examResult = calculateExamResult(state.stats, state.currentSemester, semesterStats);
+
+                set({
+                    showExamModal: true,
+                    pendingExamResult: examResult,
+                });
+            },
+
+            completeExam: () => {
+                const state = get();
+                if (!state.pendingExamResult) return;
+
+                const examResult = state.pendingExamResult;
+                const newExamResults = [...state.examResults, examResult];
+
+                // Add exam result to story log
+                const examLogEntry = {
+                    id: `exam-${Date.now()}`,
+                    message: `🎓 SEMESTER ${examResult.semester} EXAMS: ${examResult.performance.toUpperCase()} - Final GPA: ${examResult.finalGPA.toFixed(1)} - ${examResult.flavorText}`,
+                    timestamp: Date.now(),
+                };
+
+                const newStoryLog = [...state.storyLog, examLogEntry].slice(-GAME_CONFIG.MAX_STORY_LOG_ITEMS);
+
+                // Check if player failed (GPA too low)
+                if (!examResult.passed) {
+                    set({
+                        examResults: newExamResults,
+                        storyLog: newStoryLog,
+                        showExamModal: false,
+                        pendingExamResult: null,
+                        isGameComplete: true, // Game over due to failure
+                    });
+                    return;
+                }
+
+                // Advance to next semester or complete game
+                const nextSemester = state.currentSemester + 1;
+                if (nextSemester > SEMESTER_CONFIG.TOTAL_SEMESTERS) {
+                    set({
+                        examResults: newExamResults,
+                        storyLog: newStoryLog,
+                        showExamModal: false,
+                        pendingExamResult: null,
+                        isGameComplete: true, // Game completed successfully
+                    });
+                } else {
+                    set({
+                        examResults: newExamResults,
+                        storyLog: newStoryLog,
+                        currentSemester: nextSemester,
+                        currentMonth: 1,
+                        completedCards: [],
+                        showExamModal: false,
+                        pendingExamResult: null,
+                    });
+                }
             },
         }),
         {

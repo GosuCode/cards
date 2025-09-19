@@ -76,6 +76,18 @@ export interface StoryLog {
     timestamp: number;
 }
 
+export interface ExamResult {
+    semester: number;
+    finalStats: PlayerStats;
+    averageGPA: number;
+    stressPenalty: number;
+    finalGPA: number;
+    passed: boolean;
+    performance: 'excellent' | 'good' | 'average' | 'poor' | 'failed';
+    flavorText: string;
+    timestamp: number;
+}
+
 export interface GameState {
     stats: PlayerStats;
     currentSemester: number;
@@ -83,8 +95,13 @@ export interface GameState {
     completedCards: string[];
     storyLog: StoryLog[];
     isGameComplete: boolean;
+    examResults: ExamResult[];
+    showExamModal: boolean;
+    pendingExamResult: ExamResult | null;
     completeCard: (cardId: string, semesters: Semester[]) => void;
     advanceMonth: () => void;
     advanceSemester: () => void;
     resetGame: () => void;
+    triggerExam: () => void;
+    completeExam: () => void;
 }

@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useGameStore } from "@/store/game";
 import { semesters, getMonthBySemesterAndMonth } from "@/lib/chapters";
-import { PlayerStats, FloatingStatsManager } from "@/components/ui";
+import { PlayerStats, FloatingStatsManager, ExamModal } from "@/components/ui";
 import { CardHand } from "@/components/game";
 import { Card as CardType, EventCard as EventCardType } from "@/types";
 import { useStatChanges } from "@/hooks";
@@ -19,10 +19,14 @@ export default function GameBoard() {
     completedCards,
     storyLog,
     isGameComplete,
+    showExamModal,
+    pendingExamResult,
     completeCard,
     advanceMonth,
     advanceSemester,
     resetGame,
+    triggerExam,
+    completeExam,
   } = useGameStore();
 
   const { changes, updateStats, removeStatChange } = useStatChanges();
@@ -46,6 +50,16 @@ export default function GameBoard() {
 
   const handleCardClick = (card: CardType | EventCardType) => {
     completeCard(card.id, semesters);
+  };
+
+  const handleAdvanceMonth = () => {
+    advanceMonth();
+
+    if (currentMonth === 6) {
+      setTimeout(() => {
+        triggerExam();
+      }, 500);
+    }
   };
 
   const handleResetGame = () => {
@@ -107,7 +121,7 @@ export default function GameBoard() {
         {/* Month/Semester Controls */}
         <div className="flex justify-center gap-4 mb-8">
           <button
-            onClick={advanceMonth}
+            onClick={handleAdvanceMonth}
             className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-green-500/25 transition-all duration-300 hover:scale-105"
           >
             Advance Month
@@ -265,6 +279,11 @@ export default function GameBoard() {
 
       {/* Floating Stats Manager */}
       <FloatingStatsManager changes={changes} onRemove={removeStatChange} />
+
+      {/* Exam Modal */}
+      {showExamModal && pendingExamResult && (
+        <ExamModal examResult={pendingExamResult} onComplete={completeExam} />
+      )}
     </div>
   );
 }
